@@ -68,4 +68,8 @@ export class UsersService {
     const newAlbum = await this.albumsService.create({ user, name: data.name });
     return newAlbum;
   }
+
+  saveUser(user: User) {
+    return this.usersRepository.save(user);
+  }
 }

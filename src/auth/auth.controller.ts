@@ -3,6 +3,7 @@ import {
   Controller,
   HttpException,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Req,
@@ -39,6 +40,23 @@ export class AuthController {
   @Post('register')
   async register(@Body() dto: CreateUserDto) {
     return this.authService.registerUser(dto);
+  }
+
+  @Patch('update-password')
+  async updatePassword(
+    @Body() dto: { newPassword: string; email: string },
+    @Query('token') confirmationCode: string,
+  ) {
+    return this.authService.updatePassword(
+      confirmationCode,
+      dto.email,
+      dto.newPassword,
+    );
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Query('email') email: string) {
+    return this.authService.forgotPassword(email);
   }
 
   @UseGuards(AuthGuard('local'))

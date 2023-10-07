@@ -160,7 +160,6 @@ export class ScheduleService {
   }
 
   async getAvailableTimeSlotss() {
-    console.log('in get available timeslots', this.configService);
     const res = await this.listEvents();
     const busySlots = res.items.reduce((obj, item) => {
       const startTime = new Date(item.start.dateTime);
