@@ -24,7 +24,11 @@ import * as path from 'path';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: path.resolve(__dirname, '..', '.env'),
+      envFilePath: path.resolve(
+        __dirname,
+        '..',
+        process.env.NODE_ENV === 'development' ? '.env.development' : '.env',
+      ),
       isGlobal: true,
     }),
     ScheduleModule,

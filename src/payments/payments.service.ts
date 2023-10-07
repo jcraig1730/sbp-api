@@ -2,13 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import Stripe from 'stripe';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentsService {
-  stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY, {
-    apiVersion: '2023-08-16',
-  });
-  private readonly endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
+  stripe: Stripe;
+  endpointSecret: string;
+  constructor(private readonly configService: ConfigService) {
+    this.stripe = new Stripe(this.configService.get('STRIPE_PRIVATE_KEY'), {
+      apiVersion: '2023-08-16',
+    });
+    this.endpointSecret = this.configService.get('STRIPE_ENDPOINT_SECRET');
+  }
 
   async createIntent(data: {
     amount: number;

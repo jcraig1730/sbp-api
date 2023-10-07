@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreatePhotoDto } from './dto/create-photo.dto';
 import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { InjectRepository } from '@nestjs/typeorm';

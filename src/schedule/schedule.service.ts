@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { google, calendar_v3 } from 'googleapis';
 import { Schedule } from './entities/schedule.entity';
 import Event = calendar_v3.Schema$Event;
@@ -107,7 +107,7 @@ const doTimesOverlap = (event1: DayEvent, event2: DayEvent) => {
 @Injectable()
 export class ScheduleService {
   private calendar;
-  private calendarId = 'guitarz777@gmail.com';
+  private calendarId;
 
   constructor(
     private readonly appointmentsService: AppointmentsService,
@@ -119,19 +119,26 @@ export class ScheduleService {
       this.configService.get('GOOGLE_PRIVATE_KEY').replace(/\\n/g, '\n'),
       ['https://www.googleapis.com/auth/calendar'],
     );
-
     this.calendar = google.calendar({ version: 'v3', auth: jwtClient });
+    this.calendarId =
+      this.configService.get('NODE_ENV') === 'development'
+        ? 'guitarz777@gmail.com'
+        : 'shelbyboldenphotography@gmail.com';
   }
 
   async listEvents(): Promise<Schedule> {
-    const res = await this.calendar.events.list({
-      calendarId: this.calendarId,
-      timeMin: new Date(),
-      timeMax: new Date(
-        new Date(new Date()).setFullYear(new Date().getFullYear() + 1),
-      ),
-    });
-    return res.data;
+    try {
+      const res = await this.calendar.events.list({
+        calendarId: this.calendarId,
+        timeMin: new Date(),
+        timeMax: new Date(
+          new Date(new Date()).setFullYear(new Date().getFullYear() + 1),
+        ),
+      });
+      return res.data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getTimeSlots() {
@@ -153,6 +160,7 @@ export class ScheduleService {
   }
 
   async getAvailableTimeSlotss() {
+    console.log('in get available timeslots', this.configService);
     const res = await this.listEvents();
     const busySlots = res.items.reduce((obj, item) => {
       const startTime = new Date(item.start.dateTime);

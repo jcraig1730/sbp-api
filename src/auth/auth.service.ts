@@ -99,6 +99,10 @@ export class AuthService {
             border-radius: 4px;
             text-decoration: none;
         }
+        .ii a[href] {
+          text-decoration: none;
+          color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -113,7 +117,9 @@ export class AuthService {
         <p>
             Speaking of memories, here's one more step to embark on a beautiful journey with us!
         </p>
-        <a href="http://localhost:3001/login?token=${confirmationCode}" class="button">Confirm Your Email</a>
+        <a href="${this.configService.get(
+          'UI_URL',
+        )}/login?token=${confirmationCode}" class="button">Confirm Your Email</a>
         <p>
             Let's create moments together that you can cherish, display, and reminisce for years to come!
         </p>
