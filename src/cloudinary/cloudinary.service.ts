@@ -15,4 +15,8 @@ export class CloudinaryService {
       toStream(file.buffer).pipe(upload);
     });
   }
+
+  async uploadMany(files: Express.Multer.File[]) {
+    return Promise.all(files.map((file) => this.uploadImage(file)));
+  }
 }

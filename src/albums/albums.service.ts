@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { CreatePhotoDto } from 'src/photos/dto/create-photo.dto';
+import {
+  CreatePhotoDto,
+  CreatePhotosDto,
+} from 'src/photos/dto/create-photo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Album } from './entities/album.entity';
 import { Repository } from 'typeorm';
@@ -28,6 +31,20 @@ export class AlbumsService {
     const photoCreateData = { name: dto.name, album };
     const newPhoto = await this.photoService.create(photoCreateData, file);
     return newPhoto;
+  }
+
+  async addPhotos(
+    albumId: string,
+    dto: CreatePhotosDto,
+    files: Express.Multer.File[],
+  ) {
+    const album = await this.albumRepo.findOneBy({ id: albumId });
+    const newPhotos = files.map((file, index) => {
+      const photoCreateData = { name: dto[index], album };
+      return this.photoService.create(photoCreateData, file);
+    });
+    await Promise.all(newPhotos);
+    return newPhotos;
   }
 
   async getAlbumsByUser(userId: string) {

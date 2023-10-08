@@ -8,15 +8,15 @@ import {
   Delete,
   Req,
   UseInterceptors,
-  UploadedFile,
   UseGuards,
   UnauthorizedException,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AlbumsService } from './albums.service';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { CreatePhotoDto } from 'src/photos/dto/create-photo.dto';
+import { CreatePhotosDto } from 'src/photos/dto/create-photo.dto';
 import { Request } from 'express';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles-guard.guard';
 import { Roles } from 'src/auth/roles.decorator';
@@ -27,14 +27,14 @@ export class AlbumsController {
   constructor(private readonly albumsService: AlbumsService) {}
 
   @Post('/:albumId/photos')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files'))
   addPhoto(
-    @Body() dto: CreatePhotoDto,
+    @Body() dto: CreatePhotosDto,
     @Req() req: Request,
     @Param() params: any,
-    @UploadedFile() file,
+    @UploadedFiles() files,
   ) {
-    return this.albumsService.addPhoto(params.albumId, dto, file);
+    return this.albumsService.addPhotos(params.albumId, dto, files);
   }
 
   @UseGuards(JwtAuthGuard)
