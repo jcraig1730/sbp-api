@@ -77,8 +77,10 @@ export class PaymentsController {
     };
   }
 
-  @Post('accepted-webhook')
-  async paymentAcceptedWebhook(@Req() request) {}
+  @Post('stripe-webhook')
+  async paymentAcceptedWebhook(@Req() request) {
+    return this.paymentsService.stripeWebhook(request.body);
+  }
 
   @Get()
   findAll() {

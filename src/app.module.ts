@@ -20,9 +20,12 @@ import { Album } from './albums/entities/album.entity';
 import { Photo } from './photos/entities/photo.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
+import { PaymentsGateway } from './payments/payments.gateway';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register(),
     ConfigModule.forRoot({
       envFilePath: path.resolve(
         __dirname,
@@ -56,6 +59,6 @@ import * as path from 'path';
     CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService],
+  providers: [AppService, EmailService, PaymentsGateway],
 })
 export class AppModule {}

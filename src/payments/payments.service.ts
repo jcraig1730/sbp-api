@@ -1,14 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import Stripe from 'stripe';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { PaymentsGateway } from './payments.gateway';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PaymentsService {
   stripe: Stripe;
   endpointSecret: string;
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private paymentsGateway: PaymentsGateway,
+    private readonly configService: ConfigService,
+  ) {
     this.stripe = new Stripe(this.configService.get('STRIPE_PRIVATE_KEY'), {
       apiVersion: '2023-08-16',
     });
@@ -58,29 +65,20 @@ export class PaymentsService {
     return `This action removes a #${id} payment`;
   }
 
-  onPaymentSuccess(request: Request) {
-    const sig = request.headers['stripe-signature'];
-    let event;
-
-    try {
-      event = this.stripe.webhooks.constructEvent(
-        request.body,
-        sig,
-        this.endpointSecret,
-      );
-    } catch (err) {
-      console.log({ err });
-      return;
+  async stripeWebhook(paymentIntent: any) {
+    const intentId = paymentIntent.data.object.id;
+    const idempotencyKey = paymentIntent.request.idempotency_key;
+    const isRepeat = await this.cacheManager.get(idempotencyKey);
+    if (isRepeat) return;
+    this.cacheManager.set(idempotencyKey, idempotencyKey);
+    if (paymentIntent.type === 'payment_intent.succeeded') {
+      this.paymentsGateway.emitSuccess(intentId);
     }
-
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        const paymentIntentSucceeded = event.data.object;
-
-        break;
-
-      default:
-        console.log(`Unhandled event type ${event.type}`);
+    if (paymentIntent.type === 'payment_intent.payment_failed') {
+      this.paymentsGateway.emitFail(intentId);
+    }
+    if (paymentIntent.type === 'payment_intent.canceled') {
+      this.paymentsGateway.emitFail(intentId);
     }
   }
 }
